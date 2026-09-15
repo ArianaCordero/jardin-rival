@@ -153,4 +153,4 @@ incorporó y qué se verificó antes de aceptarla. Ejemplo de formato:_
 
 | Fecha | Herramienta | Qué se solicitó | Qué se incorporó | Qué se verificó |
 |---|---|---|---|---|
-| (completar) | Claude | Ayuda para diseñar la lógica de crecimiento de plantas y las rutas REST | La estructura de `huerto.ts` y `partida.ts` | Se probaron manualmente todas las acciones (válidas e inválidas) con `curl` antes de conectarlas al frontend |
+| Sep 10 | Claude | Ayuda para diseñar la lógica de crecimiento de plantas y las rutas REST | La estructura de `huerto.ts` y `partida.ts` | Se probaron manualmente todas las acciones (válidas e inválidas) con `curl` antes de conectarlas al frontend |
