@@ -17,20 +17,27 @@ test.describe('Jardín Rival - flujo principal', () => {
     await page.getByTestId('boton-jugar').click();
     await expect(page.getByTestId('huerto')).toBeVisible();
 
-    // Jugador1 planta en su territorio (columna 0, fila 0).
+    // El jugador inicial es aleatorio, así que detectamos de quién es el
+    // turno y plantamos en el territorio correcto (columnas 0-2 para
+    // jugador1, columnas 3-5 para jugador2) en vez de asumir jugador1.
+    const esJugador1 = await page.locator('.hud-jugador1.hud-activo').isVisible();
+    const columnaPropia = esJugador1 ? 0 : 5;
+    const parcelaPropia = `parcela-0-${columnaPropia}`;
+
     await page.getByTestId('boton-accion-plantar').click();
-    await page.getByTestId('parcela-0-0').click();
+    await page.getByTestId(parcelaPropia).click();
     await expect(page.getByTestId('mensaje-estado')).toContainText('plantó');
 
-    // Ahora es turno de jugador2: pasamos su turno para volver a jugador1.
-    await page.getByTestId('boton-accion-pasar').isVisible().catch(() => null);
+    // Pasamos el turno del rival para volver al jugador que plantó.
     await page.getByRole('button', { name: 'Pasar turno' }).click();
     await expect(page.getByTestId('mensaje-estado')).toContainText('descansó');
 
-    // Jugador1 riega la parcela que plantó, confirmando comunicación real con Express.
+    // Riega la parcela que plantó, confirmando comunicación real con Express.
+    // Como algunas parcelas son fértiles (crecen directo a "flor" con un solo
+    // riego), aceptamos cualquiera de los dos mensajes posibles.
     await page.getByTestId('boton-accion-regar').click();
-    await page.getByTestId('parcela-0-0').click();
-    await expect(page.getByTestId('mensaje-estado')).toContainText('regó');
+    await page.getByTestId(parcelaPropia).click();
+    await expect(page.getByTestId('mensaje-estado')).toContainText(/regó|floreció/);
   });
 
   test('una acción inválida es rechazada por el backend y no cambia el turno', async ({ page }) => {
@@ -38,14 +45,24 @@ test.describe('Jardín Rival - flujo principal', () => {
     await page.getByTestId('boton-jugar').click();
     await expect(page.getByTestId('huerto')).toBeVisible();
 
+    // Detectamos de quién es el turno antes de la acción inválida, ya que
+    // el jugador inicial es aleatorio.
+    const esJugador1Antes = await page.locator('.hud-jugador1.hud-activo').isVisible();
+    // Elegimos una parcela que nunca es propia sin importar quién empiece.
+    const parcelaAjena = esJugador1Antes ? 'parcela-3-5' : 'parcela-0-0';
+
     // Intentar regar una parcela vacía (nadie la ha plantado) debe fallar en el servidor.
     await page.getByTestId('boton-accion-regar').click();
-    await page.getByTestId('parcela-3-5').click();
+    await page.getByTestId(parcelaAjena).click();
 
     await expect(page.getByTestId('mensaje-estado')).toContainText('Solo puedes regar tus propias plantas');
 
-    // Sigue siendo el turno de jugador1: el panel activo debe mostrarlo.
-    await expect(page.locator('.hud-jugador1.hud-activo')).toBeVisible();
+    // El turno no debe haber cambiado: sigue activo el mismo jugador que antes.
+    if (esJugador1Antes) {
+      await expect(page.locator('.hud-jugador1.hud-activo')).toBeVisible();
+    } else {
+      await expect(page.locator('.hud-jugador2.hud-activo')).toBeVisible();
+    }
   });
 });
 
