@@ -1,0 +1,58 @@
+name: Pruebas E2E
+
+# Ejecuta las pruebas end-to-end con Playwright en modo headless contra la
+# aplicación construida y servida localmente por Express (frontend + backend
+# bajo el mismo dominio y puerto).
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  e2e:
+    name: Playwright headless
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Instalar y construir backend
+        working-directory: backend
+        run: |
+          npm install
+          npm run build
+
+      - name: Instalar y construir frontend
+        working-directory: frontend
+        run: |
+          npm install
+          npm run build
+
+      - name: Levantar servidor (frontend + backend en el mismo puerto)
+        working-directory: backend
+        run: |
+          npm run start &
+          npx wait-on http://localhost:4000
+
+      - name: Instalar dependencias de Playwright
+        working-directory: e2e
+        run: |
+          npm install
+          npx playwright install --with-deps chromium
+
+      - name: Ejecutar pruebas E2E (headless)
+        working-directory: e2e
+        env:
+          URL_BASE: http://localhost:4000
+          CI: true
+        run: npm run test
+
+      - name: Subir evidencia de fallos
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: e2e/test-results

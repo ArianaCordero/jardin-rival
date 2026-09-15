@@ -1,0 +1,40 @@
+name: Linting
+
+# Valida que el código de frontend y backend cumpla las reglas de ESLint.
+# Este workflow debe FALLAR si el código no cumple las reglas configuradas.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-backend:
+    name: Lint backend (Express + TypeScript)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Instalar dependencias del backend
+        working-directory: backend
+        run: npm install
+      - name: Ejecutar ESLint en backend
+        working-directory: backend
+        run: npm run lint
+
+  lint-frontend:
+    name: Lint frontend (React + TypeScript)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Instalar dependencias del frontend
+        working-directory: frontend
+        run: npm install
+      - name: Ejecutar ESLint en frontend
+        working-directory: frontend
+        run: npm run lint

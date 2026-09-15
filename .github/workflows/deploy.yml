@@ -1,0 +1,29 @@
+name: Deployment
+
+# Despliega la aplicación completa (frontend + backend) a Render.
+# Requiere que el repositorio tenga configurado el secreto RENDER_DEPLOY_HOOK
+# con la URL del "Deploy Hook" del servicio en Render (Settings > Deploy Hook).
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+jobs:
+  deploy:
+    name: Disparar deploy en Render
+    runs-on: ubuntu-latest
+    needs: []
+    steps:
+      - name: Verificar que el hook esté configurado
+        run: |
+          if [ -z "${{ secrets.RENDER_DEPLOY_HOOK }}" ]; then
+            echo "Falta configurar el secreto RENDER_DEPLOY_HOOK en el repositorio."
+            exit 1
+          fi
+
+      - name: Disparar deploy hook de Render
+        run: |
+          curl -f -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
+
+      - name: Confirmar disparo exitoso
+        run: echo "Deploy disparado correctamente. Verificar estado en el dashboard de Render."
