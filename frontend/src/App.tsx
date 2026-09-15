@@ -217,7 +217,7 @@ export default function App() {
         <img src="/sprites/decor_granjero.png" alt="" className="escena decor-granjero" aria-hidden="true" />
 
         <div className="panel-inicio">
-          <h1>Jardín Rival</h1>
+          <h1>Garden</h1>
           <p>
             Dos jugadores comparten un huerto. Planta, riega y haz crecer tus flores antes de que se
             acaben los turnos &mdash; o róbale agua a tu rival para retrasarlo.
