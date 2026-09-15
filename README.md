@@ -102,7 +102,7 @@ La aplicación está pensada para desplegarse en [Render](https://render.com/).
 Ver `docs/investigacion.md` para el detalle del proceso de publicación y el
 disparo automático mediante GitHub Actions.
 
-**URL publicada:** _(completar aquí con el enlace real una vez desplegado)_
+**URL publicada:** https://jardin-rival.onrender.com
 
 ## Documentación del proyecto
 
