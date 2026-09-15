@@ -72,9 +72,10 @@ function sembrarParcelasEspeciales(huerto: Parcela[]): void {
 export function crearPartida(id: string): Partida {
   const huerto = crearHuertoVacio();
   sembrarParcelasEspeciales(huerto);
+  const jugadorInicial: IdJugador = Math.random() < 0.5 ? 'jugador1' : 'jugador2';
   return {
     id,
-    turno: 'jugador1',
+    turno: jugadorInicial,
     turnosRestantes: TURNOS_INICIALES,
     estado: 'en_curso',
     ganador: null,
@@ -84,7 +85,7 @@ export function crearPartida(id: string): Partida {
       jugador1: { agua: AGUA_INICIAL },
       jugador2: { agua: AGUA_INICIAL },
     },
-    ultimoMensaje: 'La partida ha comenzado. Turno de jugador1.',
+    ultimoMensaje: `La partida ha comenzado. Turno de ${jugadorInicial}.`,
   };
 }
 
@@ -200,22 +201,24 @@ function dispararEvento(partida: Partida, jugadorActual: IdJugador): string | nu
   return `Racha de suerte para ${jugadorActual}: su parcela (${elegida.fila}, ${elegida.columna}) creció gratis.`;
 }
 
-function contarFlores(huerto: Parcela[], jugador: IdJugador): number {
-  return huerto.filter((p) => p.propietario === jugador && p.etapa === 'flor').length;
+function calcularPuntos(huerto: Parcela[], jugador: IdJugador): number {
+  return huerto
+    .filter((p) => p.propietario === jugador)
+    .reduce((total, p) => total + (p.etapa === 'flor' ? 3 : p.etapa === 'brote' ? 1 : 0), 0);
 }
 
 function finalizarSiCorresponde(partida: Partida): void {
   if (partida.turnosRestantes <= 0) {
     partida.estado = 'finalizada';
-    const flores1 = contarFlores(partida.huerto, 'jugador1');
-    const flores2 = contarFlores(partida.huerto, 'jugador2');
-    if (flores1 > flores2) partida.ganador = 'jugador1';
-    else if (flores2 > flores1) partida.ganador = 'jugador2';
+    const puntos1 = calcularPuntos(partida.huerto, 'jugador1');
+    const puntos2 = calcularPuntos(partida.huerto, 'jugador2');
+    if (puntos1 > puntos2) partida.ganador = 'jugador1';
+    else if (puntos2 > puntos1) partida.ganador = 'jugador2';
     else partida.ganador = 'empate';
     partida.ultimoMensaje = `Partida finalizada. ${
       partida.ganador === 'empate'
         ? 'Empate'
-        : `Gana ${partida.ganador} con ${Math.max(flores1, flores2)} flor(es)`
+        : `Gana ${partida.ganador} con ${Math.max(puntos1, puntos2)} punto(s)`
     }.`;
   }
 }

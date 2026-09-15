@@ -1,4 +1,4 @@
-import { useState, useEffect, ChangeEvent } from 'react';
+import { useState, useEffect, useRef, ChangeEvent } from 'react';
 import { Partida, TipoAccion } from './types';
 import { crearPartidaRemota, enviarAccion } from './api';
 import Huerto from './components/Huerto';
@@ -37,6 +37,11 @@ export default function App() {
   const [regandoParcela, setRegandoParcela] = useState<{ fila: number; columna: number } | null>(null);
   const [sacudida, setSacudida] = useState(false);
   const [tiempoRestante, setTiempoRestante] = useState(SEGUNDOS_POR_TURNO);
+  const cargandoRef = useRef(false);
+
+  useEffect(() => {
+    cargandoRef.current = cargando;
+  }, [cargando]);
   const [mejorPuntaje, setMejorPuntaje] = useState(0);
   const [nuevoRecord, setNuevoRecord] = useState(false);
   const [nombre1, setNombre1] = useState('Jugador 1');
@@ -61,6 +66,10 @@ export default function App() {
     if (pantalla !== 'jugando' || !partida || partida.estado !== 'en_curso') return;
     setTiempoRestante(SEGUNDOS_POR_TURNO);
     const id = setInterval(() => {
+      // Si hay una solicitud en camino (por ejemplo, esperando que el
+      // servidor de Render "despierte"), el reloj se congela en vez de
+      // seguir bajando, para no comerse una jugada que ya se envió.
+      if (cargandoRef.current) return;
       setTiempoRestante((t: number) => {
         const siguiente = t - 1;
         if (siguiente <= 5 && siguiente > 0) sonidoTictac();
@@ -104,7 +113,14 @@ export default function App() {
   }
 
   async function ejecutarAccion(tipo: TipoAccion, fila?: number, columna?: number) {
-    if (!partida || cargando) return;
+    if (!partida) return;
+    if (cargando) {
+      // Evita que un clic se pierda en silencio si llega mientras la
+      // solicitud anterior sigue en camino (por ejemplo, si el servidor de
+      // Render está "despertando" y tarda varios segundos en responder).
+      setMensaje('Espera, todavía se está procesando tu jugada anterior...');
+      return;
+    }
     setCargando(true);
     try {
       const respuesta = await enviarAccion(partida.id, partida.turno, tipo, fila, columna);
@@ -304,7 +320,7 @@ export default function App() {
           <span className="hud-titulo-juego">Jardín Rival</span>
           <span className="hud-turnos">Turnos: {partida.turnosRestantes}</span>
           <span className={`hud-reloj ${tiempoRestante <= 5 ? 'hud-reloj-urgente' : ''}`}>
-            {tiempoRestante}s
+            {cargando ? '...' : `${tiempoRestante}s`}
           </span>
         </div>
         <PanelJugador

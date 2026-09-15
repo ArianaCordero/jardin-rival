@@ -43,6 +43,35 @@
 
 ## Cambios importantes realizados durante el desarrollo
 
+- **Se corrigió un bug real en la condición de victoria.** El backend
+  determinaba el ganador contando únicamente parcelas en etapa "flor",
+  mientras que el HUD mostraba un puntaje ponderado que también sumaba las
+  parcelas en "brote". Esto podía producir un resultado contradictorio: un
+  jugador con más puntaje visible en pantalla (por tener varios brotes)
+  podía perder igualmente frente a un rival con una sola flor completa. Se
+  unificó el cálculo: ahora tanto el backend como el frontend usan la misma
+  fórmula (flor = 3 puntos, brote = 1 punto) para decidir el ganador, y se
+  verificó con una prueba determinística que reproduce exactamente ese caso
+  (1 flor contra 4 brotes) confirmando que ahora gana quien tiene más
+  puntos, no solo más flores literales.
+
+- **Se congeló el reloj de turno mientras hay una solicitud en camino.**
+  Se detectó que, si la respuesta del servidor tardaba (por ejemplo, al
+  "despertar" el servicio gratuito de Render tras inactividad, lo cual
+  puede tardar hasta 50 segundos), el reloj de 20 segundos seguía
+  descontando en el navegador aunque la jugada ya estuviera en camino, y
+  cualquier clic adicional del jugador se ignoraba en silencio mientras
+  tanto. Se agregó una referencia (`useRef`) que congela la cuenta
+  regresiva mientras `cargando` es verdadero, y se reemplazó el descarte
+  silencioso de clics por un mensaje explícito ("Espera, todavía se está
+  procesando tu jugada anterior...") para que el jugador entienda qué está
+  pasando en vez de sentir que "perdió el turno" sin explicación.
+
+- **Se hizo aleatorio quién empieza la partida.** Antes, `jugador1` siempre
+  iniciaba, lo que le daba una ventaja estructural constante (una acción
+  extra de ventaja informativa). Ahora el backend elige al azar quién
+  empieza en cada partida nueva.
+
 - **Se agregaron nombres personalizados, un marcador de rivalidad
   persistente y frases con actitud en los momentos clave.** El análisis de
   a quién está dirigido el juego (jóvenes de 20-30 años jugando en el mismo
@@ -153,4 +182,4 @@ incorporó y qué se verificó antes de aceptarla. Ejemplo de formato:_
 
 | Fecha | Herramienta | Qué se solicitó | Qué se incorporó | Qué se verificó |
 |---|---|---|---|---|
-| Sep 10 | Claude | Ayuda para diseñar la lógica de crecimiento de plantas y las rutas REST | La estructura de `huerto.ts` y `partida.ts` | Se probaron manualmente todas las acciones (válidas e inválidas) con `curl` antes de conectarlas al frontend |
+| (completar) | Claude | Ayuda para diseñar la lógica de crecimiento de plantas y las rutas REST | La estructura de `huerto.ts` y `partida.ts` | Se probaron manualmente todas las acciones (válidas e inválidas) con `curl` antes de conectarlas al frontend |

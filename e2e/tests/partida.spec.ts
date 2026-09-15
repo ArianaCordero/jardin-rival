@@ -30,7 +30,7 @@ test.describe('Jardín Rival - flujo principal', () => {
     // Jugador1 riega la parcela que plantó, confirmando comunicación real con Express.
     await page.getByTestId('boton-accion-regar').click();
     await page.getByTestId('parcela-0-0').click();
-    await expect(page.getByTestId('mensaje-estado')).toContainText(/regó|floreció/);
+    await expect(page.getByTestId('mensaje-estado')).toContainText('regó');
   });
 
   test('una acción inválida es rechazada por el backend y no cambia el turno', async ({ page }) => {

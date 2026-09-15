@@ -3,7 +3,9 @@
 ## Jugadores
 
 Exactamente 2 jugadores: `jugador1` y `jugador2`, en el mismo dispositivo,
-alternando turnos en la misma pantalla (modo "hotseat").
+alternando turnos en la misma pantalla (modo "hotseat"). Quién empieza la
+partida se decide al azar cada vez, para que ningún jugador tenga siempre la
+ventaja de mover primero.
 
 ## El huerto
 
